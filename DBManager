@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using Firebase;
 using Firebase.Database;
 
-public class NewBehaviourScript : MonoBehaviour
+public class DBManager : MonoBehaviour
 {
     public DatabaseReference usersRef;
     public InputField usernameInput, passwordIn;
@@ -23,18 +23,19 @@ public class NewBehaviourScript : MonoBehaviour
             yield return null;
         }
 
-        if(task.IsCanceled || task.IsFaulted)
+        if (task.IsCanceled || task.IsFaulted)
         {
             Debug.LogError("database error: " + task.Exception);
         }
 
         var dependencyStatus = task.Result;
 
-        if(dependencyStatus == dependencyStatus.Avaliable)
+        if (dependencyStatus == DependencyStatus.Available)
         {
             usersRef = FirebaseDatabase.DefaultInstance.GetReference("Users");
             Debug.Log("init completed");
-        } else
+        }
+        else
         {
             Debug.Log("Database error: ");
         }
@@ -73,11 +74,11 @@ public class NewBehaviourScript : MonoBehaviour
             yield break;
         }
 
-        DataSnapshot sbapshot = task.Result;
+        DataSnapshot snapshot = task.Result;
 
-        foreach(DataSnapshot user in snapshot.Children)
+        foreach (DataSnapshot user in snapshot.Children)
         {
-            if(user.Key == "password")
+            if (user.Key == "password")
             {
                 Debug.Log("Password: " + user.Value.ToString());
             }
