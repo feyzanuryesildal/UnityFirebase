@@ -1,0 +1,93 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using Firebase;
+using Firebase.Database;
+
+public class NewBehaviourScript : MonoBehaviour
+{
+    public DatabaseReference usersRef;
+    public InputField usernameInput, passwordIn;
+
+    void Start()
+    {
+        StartCoroutine(Initilization());
+    }
+
+    private IEnumerator Initilization()
+    {
+        var task = FirebaseApp.CheckAndFixDependenciesAsync();
+        while (!task.IsCompleted)
+        {
+            yield return null;
+        }
+
+        if(task.IsCanceled || task.IsFaulted)
+        {
+            Debug.LogError("database error: " + task.Exception);
+        }
+
+        var dependencyStatus = task.Result;
+
+        if(dependencyStatus == dependencyStatus.Avaliable)
+        {
+            usersRef = FirebaseDatabase.DefaultInstance.GetReference("Users");
+            Debug.Log("init completed");
+        } else
+        {
+            Debug.Log("Database error: ");
+        }
+    }
+
+    public void SaveUser()
+    {
+        string username = usernameInput.text;
+        string password = passwordIn.text;
+
+        Dictionary<string, object> user = new Dictionary<string, object>();
+        user["username"] = username;
+        user["password"] = password;
+
+        string key = usersRef.Push().Key;
+
+        usersRef.Child(key).UpdateChildrenAsync(user);
+    }
+
+    public void GetData()
+    {
+        StartCoroutine(GetUserData());
+    }
+    public IEnumerator GetUserData()
+    {
+        string name = usernameInput.text;
+        var task = usersRef.Child(name).GetValueAsync();
+        while (!task.IsCompleted)
+        {
+            yield return null;
+        }
+
+        if (task.IsCanceled || task.IsFaulted)
+        {
+            Debug.LogError("database error: " + task.Exception);
+            yield break;
+        }
+
+        DataSnapshot sbapshot = task.Result;
+
+        foreach(DataSnapshot user in snapshot.Children)
+        {
+            if(user.Key == "password")
+            {
+                Debug.Log("Password: " + user.Value.ToString());
+            }
+
+            if (user.Key == "username")
+            {
+                Debug.Log("username: " + user.Value.ToString());
+            }
+        }
+
+    }
+
+}
