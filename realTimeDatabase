@@ -1,0 +1,63 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using Firebase;
+using Firebase.Database;
+
+public class realtimeDatabase : MonoBehaviour
+{
+    DatabaseReference reference;
+    [SerializeField] InputField userName;
+    [SerializeField] InputField email;
+    [SerializeField] InputField nameToRead;
+    [SerializeField] Text data;
+
+    void Start()
+    {
+        reference = FirebaseDatabase.DefaultInstance.RootReference;
+    }
+
+    public void saveData()
+    {
+        user user = new user();
+
+        user.username = userName.text;
+        user.email = email.text;
+
+        string json = JsonUtility.ToJson(user);
+
+        reference.Child("user").Child(user.username).SetRawJsonValueAsync(json).ContinueWith(task => {
+            if (task.IsCompleted)
+            {
+                Debug.Log("succesfull");
+
+            } else
+            {
+                Debug.Log("error");
+            }
+        });
+    }
+
+    public void getData()
+    {
+        reference.Child("User").Child(nameToRead.text).GetValueAsync().ContinueWith(task =>
+        {
+            if (task.IsCompleted)
+            {
+                Debug.Log("başarılı");
+                DataSnapshot snapshot = task.Result;
+                 Debug.Log(snapshot.Child("userName").Value.ToString());
+                data.text = snapshot.Child("email").Value.ToString();
+            } else
+            {
+                Debug.Log("başarısız");
+            }
+        });
+    }
+
+    void Update()
+    {
+        
+    }
+}
